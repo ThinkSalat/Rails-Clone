@@ -21,9 +21,12 @@ class ControllerBase
   # Set the response status code and header
   def redirect_to(url)
     raise 'Already built response!' if already_built_response?
+
     res.status = 302
     res.location = url
-    # res.set_cookie('_rails_lite_app',session['_rails_lite_app'])
+
+    session.store_session(res)
+
     @already_built_response = true
   end
 
@@ -32,9 +35,12 @@ class ControllerBase
   # Raise an error if the developer tries to double render.
   def render_content(content, content_type)
     raise 'Already built response!' if already_built_response?
-    # res.set_cookie('_rails_lite_app',session['_rails_lite_app'])
+
+
     res.write(content)
     res['Content-Type'] = content_type
+    session.store_session(res)
+
     @already_built_response = true
   end
 
@@ -43,16 +49,14 @@ class ControllerBase
   def render(template_name)
     controller_name = self.class.name.underscore
     path = "views/#{controller_name}/#{template_name}.html.erb"
-    template = File.read(path)
-    erb_template = ERB.new(template)
-    content = erb_template.result(binding)
+    content = ERB.new(File.read(path)).result(binding)
     content_type = 'text/html'
     render_content(content, content_type)
   end
 
   # method exposing a `Session` object
   def session
-    # @session ||= Session.new(req)
+    @session ||= Session.new(req)
   end
 
   # use this with the router to call action_name (:index, :show, :create...)

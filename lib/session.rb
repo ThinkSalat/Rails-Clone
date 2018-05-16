@@ -6,6 +6,7 @@ class Session
   def initialize(req)
     cookie = req.cookies['_rails_lite_app']
     if cookie
+      puts cookie
       @data = JSON.parse(cookie)
     else
       @data = {}

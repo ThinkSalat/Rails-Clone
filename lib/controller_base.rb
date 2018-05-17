@@ -9,8 +9,10 @@ class ControllerBase
   attr_reader :req, :res, :params
 
   # Setup the controller
-  def initialize(req, res)
+  def initialize(req, res, route_params = {})
     @req,@res = req,res
+    @params = route_params.merge(req.params)
+    @already_built_response = false
   end
 
   # Helper method to alias @already_built_response
@@ -28,6 +30,8 @@ class ControllerBase
     session.store_session(res)
 
     @already_built_response = true
+
+    nil
   end
 
   # Populate the response with content.
@@ -42,6 +46,8 @@ class ControllerBase
     session.store_session(res)
 
     @already_built_response = true
+
+    nil
   end
 
   # use ERB and binding to evaluate templates
@@ -61,5 +67,12 @@ class ControllerBase
 
   # use this with the router to call action_name (:index, :show, :create...)
   def invoke_action(name)
+    self.send(name)
+    render(name) unless already_built_response?
+
+    nil
+  end
+  def controller_name
+    self.class.to_s.underscore
   end
 end
